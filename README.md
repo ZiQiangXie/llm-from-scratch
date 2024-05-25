@@ -398,14 +398,14 @@ freqs
 
 
 ```python
-freqs_for_each_token = torch.outer(torch.arange(17), freqs)
+freqs_for_each_token = torch.outer(torch.arange(len(tokens)), freqs)
 freqs_cis = torch.polar(torch.ones_like(freqs_for_each_token), freqs_for_each_token)
 freqs_cis.shape
 
 # viewing tjhe third row of freqs_cis
 value = freqs_cis[3]
 plt.figure()
-for i, element in enumerate(value[:17]):
+for i, element in enumerate(value[:len(tokens)]):
     plt.plot([0, element.real], [0, element.imag], color='blue', linewidth=1, label=f"Index: {i}")
     plt.annotate(f"{i}", xy=(element.real, element.imag), color='red')
 plt.xlabel('Real')
