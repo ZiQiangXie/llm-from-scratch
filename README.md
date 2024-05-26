@@ -1,3 +1,5 @@
+# original repo: https://github.com/naklecha/llama3-from-scratch
+
 # llama3 implemented from scratch
 in this file, i implemented llama3 from scratch, one tensor and matrix multiplication at a time.
 <br>
