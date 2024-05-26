@@ -1,8 +1,8 @@
 # 从头实现 Llama3 模型
-在这个文件中，我从头实现了 Llama3，其中包含张量和矩阵乘法。
+在这个文件中，我从头实现了 Llama3，一次实现一个张量和矩阵乘法。
 <br>
 此外，我将直接从 Meta 提供的 Llama3 模型文件中加载张量，在运行此文件之前，您需要下载权重。
-这是官方链接： https://llama.meta.com/llama-downloads/
+这是下载权重的官方链接： https://llama.meta.com/llama-downloads/
 
 <div>
     <img src="images/archi.png"/>
@@ -12,7 +12,7 @@
 
 我不会实现一个 BPE 分词器（但 Andrej Karpathy 也有一个非常简洁的实现）
 <br>
-这是他的项目地址： https://github.com/karpathy/minbpe
+他的项目地址： https://github.com/karpathy/minbpe
 
 
 <div>
@@ -51,7 +51,7 @@ tokenizer = tiktoken.Encoding(
     special_tokens={token: len(mergeable_ranks) + i for i, token in enumerate(special_tokens)},
 )
 
-# 测试分词器编码和解码功能
+# 先编码再解码，对分词器的编码和解码功能进行测试
 tokenizer.decode(tokenizer.encode("hello world!"))
 ```
 
@@ -63,9 +63,10 @@ tokenizer.decode(tokenizer.encode("hello world!"))
 
 
 ## 读取模型文件
-通常，读取模型文件,往往取决于模型类的编写方式以及其中的变量名。
+通常，读取模型文件往往取决于模型类的编写方式以及其中的变量名称。
 <br>
-但由于我们要从头实现 Llama3，我们将一次性读取一个张量。
+但是由于我们是从头开始实现 Llama3，我们将一次读取一个张量。
+
 <div>
     <img src="images/model.png" width="600"/>
 </div>
@@ -104,7 +105,7 @@ print(json.dumps(list(model.keys())[:20], indent=4))
 
 ```python
 
-# 获取模型配置参数
+# 获取模型基础配置参数
 with open("Meta-Llama-3-8B/params.json", "r") as f:
     config = json.load(f)
 config
@@ -125,8 +126,8 @@ config
 
 
 
-## 使用这些配置推理模型的细节
-1. 模型有 32 个 Transformer 层
+## 我们使用这些配置推断模型的细节
+1. 模型有 32 个 transformer 层
 2. 每个多头注意力块有 32 个头
 3. 词汇表大小等
 
@@ -144,8 +145,8 @@ norm_eps = config["norm_eps"]
 rope_theta = torch.tensor(config["rope_theta"])
 ```
 
-## 将文本转换为 token
-这里我们使用 tiktoken（我觉得应该是 OpenAI 的库）作为分词器
+## 将文本转换为 tokens
+这里我们使用 tiktoken（我认为是 OpenAI 库）作为分词器
 <div>
     <img src="images/tokens.png" width="600"/>
 </div>
@@ -154,7 +155,7 @@ rope_theta = torch.tensor(config["rope_theta"])
 ```python
 prompt = "the answer to the ultimate question of life, the universe, and everything is "
 
-# 编码为token
+# 编码为token，并在开头添加开始标识token id
 tokens = [128000] + tokenizer.encode(prompt)
 print(tokens)
 tokens = torch.tensor(tokens)
@@ -170,12 +171,12 @@ print(prompt_split_as_tokens)
 
 ## 将 token 转换为其对应的 embedding
 
-这里我们使用内置的神经网络模块
+抱歉，但这是代码库中唯一使用内置神经网络模块的部分。
 <br>
-反正, 我们的 [17x1] token 现在是 [17x4096]，即每个 token 的长度为 4096 的 embeddings
+我们的 [17x1] token 现在是 [17x4096]，即17个 (每一个是对应一个token) 长度为 4096 的 embeddings.
 <br>
 <br>
-注意：跟踪 shapes，这样一切将变得理解更容易
+注意：持续跟踪 shapes，将会更加容易理解所有的内容。
 
 <div>
     <img src="images/embeddings.png" width="600"/>
@@ -183,12 +184,11 @@ print(prompt_split_as_tokens)
 
 
 ```python
-
 # 加载嵌入层并复制权重
 embedding_layer = torch.nn.Embedding(vocab_size, dim)
 embedding_layer.weight.data.copy_(model["tok_embeddings.weight"])
 
-# 获取未归一化的 token 嵌入
+# 获取每个token的embedding表示
 token_embeddings_unnormalized = embedding_layer(tokens).to(torch.bfloat16)
 token_embeddings_unnormalized.shape
 ```
@@ -200,11 +200,11 @@ token_embeddings_unnormalized.shape
 
 
 
-## 接下来我们使用 rms 归一化嵌入
-请注意，经过此步骤后 shapes 不变，只是值被归一化
+## 然后我们使用 rms 归一化embedding
+请注意，经过这一步之后 shapes 不变，只是值被归一化。
 
 <br>
-需要注意的是，我们需要一个 norm_eps（来自配置）以避免不小心将 rms 设置为 0 并导致除以 0 的情况
+需要注意的是，我们需要一个 norm_eps（来自配置）因为我们不想出现将 rms 设置为 0 并导致除以 0 的意外情况。
 
 <br>
 这是公式:
@@ -215,7 +215,6 @@ token_embeddings_unnormalized.shape
 
 ```python
 # rms 归一化函数
-
 # def rms_norm(tensor, norm_weights):
 #     rms = (tensor.pow(2).mean(-1, keepdim=True) + norm_eps)**0.5
 #     return tensor * (norm_weights / rms)
@@ -228,9 +227,9 @@ def rms_norm(tensor, norm_weights):
 
 ### 归一化
 
-我们从模型字典中访问 layer.0（这是第一层）
+你将看到我们从模型字典中访问 layer.0（这是第一层）
 <br>
-归一化后 shapes 仍然是 [17x4096]，与嵌入相同但已归一化
+归一化之后 shapes 仍然是 [17x4096]，与嵌入相同但已归一化
 
 <div>
     <img src="images/norm.png" width="600"/>
