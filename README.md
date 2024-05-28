@@ -1,5 +1,4 @@
 ## original repo: https://github.com/naklecha/llama3-from-scratch
-<br>
 
 ### llama3-from-scratch.ipynb
 original, support weights that suffix with pth. 原始工程，支持llama3原始的pth格式的权重。
