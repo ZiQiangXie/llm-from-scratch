@@ -1,15 +1,12 @@
 ## original repo: https://github.com/naklecha/llama3-from-scratch
 <br>
 
-## llama3-from-scratch.ipynb: original, support weights that suffix with pth. 原始工程，支持llama3原始的pth格式的权重。
-
-<br>
-
-## llama3-from-scratch-hf.ipynb: support weights that suffix with safetensors. 新增文件，支持llama3的hf格式的权重，以safetensors为后缀。
-<br>
-
-## llama3-from-scratch-hf-kvcache.ipynb: support hf weights and kvcache. 新增文件，支持hf权重，并新增了kvcache，用于decoder的自回归解码。
-
+### llama3-from-scratch.ipynb
+original, support weights that suffix with pth. 原始工程，支持llama3原始的pth格式的权重。
+### llama3-from-scratch-hf.ipynb
+support weights that suffix with safetensors. 新增文件，支持llama3的hf格式的权重，以safetensors为后缀。
+### llama3-from-scratch-hf-kvcache.ipynb
+support hf weights and kvcache. 新增文件，支持hf权重，并新增了kvcache，用于decoder的自回归解码。
 <br>
 
 # llama3 implemented from scratch
