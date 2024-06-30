@@ -17,7 +17,9 @@ support hf weights and kvcache. 支持hf权重和kvcache，用于decoder的自�
 support hf weights and kvcache. 支持hf权重和kvcache，用于decoder的自回归解码。
 ### qwen2-from-scratch.ipynb
 support hf weights and kvcache. 支持hf权重和kvcache，用于decoder的自回归解码。
-<br>
+### deepseekv2-from-scratch.ipynb
+support hf weights. 支持hf权重。
+<br><br>
 
 # llama3 implemented from scratch
 in this file, i implemented llama3 from scratch, one tensor and matrix multiplication at a time.
